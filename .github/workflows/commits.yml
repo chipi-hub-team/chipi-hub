@@ -2,11 +2,11 @@ name: Commits Syntax Checker
 
 on:
   pull_request:
-    branches: [main]
+    branches: [master]
     types: [opened, reopened, edited, review_requested, synchronize]
   push:
     branches:
-      - "main"
+      - "master"
   workflow_call:
 
 jobs:

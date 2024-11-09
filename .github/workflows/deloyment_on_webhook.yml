@@ -10,7 +10,7 @@ on:
 
 jobs:
   deploy:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
 
     steps:
@@ -26,7 +26,6 @@ jobs:
 
     - name: Trigger Deployment Webhook
       env:
-        WEBHOOK_DOMAIN: ${{ secrets.WEBHOOK_DOMAIN }}
-        WEBHOOK_TOKEN: ${{ secrets.WEBHOOK_TOKEN }}
+        WEBHOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
       run: |
-        curl -X POST https://${{ secrets.WEBHOOK_DOMAIN }}/webhook/deploy -H "Authorization: Bearer ${{ secrets.WEBHOOK_TOKEN }}"
+        curl "$WEBHOOK_URL"
