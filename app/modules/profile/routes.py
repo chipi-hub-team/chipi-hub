@@ -1,7 +1,7 @@
 from app.modules.auth.models import User
 from app.modules.auth.services import AuthenticationService
 from app.modules.dataset.models import DataSet
-from flask import render_template, redirect, url_for, request
+from flask import abort, render_template, redirect, url_for, request
 from flask_login import login_required, current_user
 
 from app import db
@@ -38,11 +38,15 @@ def my_profile(user_id):
     if user_id is None:
         user_id = current_user.id
         is_my_profile = True
+
     page = request.args.get('page', 1, type=int)
     per_page = 5
 
     # se busca el perfil del usuario del id de la url par mostrarlo dsps
     user_found = db.session.query(User).filter(User.id == user_id).first()
+
+    if not user_found:
+        abort(404)
 
     user_datasets_pagination = db.session.query(DataSet) \
         .filter(DataSet.user_id == user_id) \
