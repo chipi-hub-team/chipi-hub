@@ -125,24 +125,6 @@ def edit_file(file_id):
             if not user_cookie:
                 user_cookie = str(uuid.uuid4())
 
-            # Check if the view record already exists for this cookie
-            existing_record = HubfileViewRecord.query.filter_by(
-                user_id=current_user.id if current_user.is_authenticated else None,
-                file_id=file_id,
-                view_cookie=user_cookie
-            ).first()
-
-            if not existing_record:
-                # Register file view
-                new_view_record = HubfileViewRecord(
-                    user_id=current_user.id if current_user.is_authenticated else None,
-                    file_id=file_id,
-                    view_date=datetime.now(),
-                    view_cookie=user_cookie
-                )
-                db.session.add(new_view_record)
-                db.session.commit()
-
             # Prepare response
             response = jsonify({'success': True, 'content': content})
             if not request.cookies.get('view_cookie'):
