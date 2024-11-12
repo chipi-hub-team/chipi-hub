@@ -131,5 +131,13 @@ def test_upload_dataset():
         close_driver(driver)
 
 
+def test_downloadall():
+    driver = initialize_driver()
+    driver.get("http://127.0.0.1:5000/")
+    driver.set_window_size(1702, 963)
+    driver.find_element(By.LINK_TEXT, "Download all datasets").click()
+
+
 # Call the test function
 test_upload_dataset()
+test_downloadall()
