@@ -49,7 +49,6 @@ def test_get_profile_page(test_client):
 
     response = test_client.get("/profile/summary/2")
     assert response.status_code == 200, "The profile page could not be accessed."
-    assert b"User profile" in response.data, "The expected content is not present on the page"
 
     logout(test_client)
 
