@@ -1,11 +1,26 @@
 {% extends "base_template.html" %}
 
 
-{% block title %}User Profile{% endblock %}
+{% block title %}
+    {% if is_my_profile %}
+        My profile
+    {% else %}
+        User Profile
+    {% endif %}
+
+{% endblock %}
 
 {% block content %}
 
-<h1 class="h3 mb-3">User profile</h1>
+<h1 class="h3 mb-3">
+    {% if is_my_profile %}
+        My profile
+    {% else %}
+        User Profile
+    {% endif %}
+
+
+</h1>
 
 <div class="row">
 
