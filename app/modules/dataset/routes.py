@@ -241,6 +241,38 @@ def download_dataset(dataset_id):
     return resp
 
 
+@dataset_bp.route("/dataset/download_all_datasets", methods=["GET"])
+def download_all_datsets():
+    datasets = dataset_service.get_all_datasets()
+
+    temp_dir = tempfile.mkdtemp()
+    zip_path = os.path.join(temp_dir, "datasets.zip")
+
+    with ZipFile(zip_path, "w") as zipf:
+        for dataset in datasets:
+            file_path = f"uploads/user_{dataset.user_id}/dataset_{dataset.id}/"
+
+            for subdir, dirs, files in os.walk(file_path):
+                for file in files:
+                    full_path = os.path.join(subdir, file)
+
+                    relative_path = os.path.relpath(full_path, file_path)
+
+                    zipf.write(
+                        full_path,
+                        arcname=os.path.join(
+                            os.path.basename(zip_path[:-4]), relative_path
+                        ),
+                    )
+
+    return send_from_directory(
+        temp_dir,
+        "datasets.zip",
+        as_attachment=True,
+        mimetype="application/zip",
+    )
+
+
 @dataset_bp.route("/doi/<path:doi>/", methods=["GET"])
 def subdomain_index(doi):
 
