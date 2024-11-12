@@ -5,10 +5,11 @@ from app.modules.auth import auth_bp
 from app.modules.auth.forms import SignupForm, LoginForm
 from app.modules.auth.services import AuthenticationService
 from app.modules.profile.services import UserProfileService
-
+from app.modules.validatemail.services import ValidatemailService
 
 authentication_service = AuthenticationService()
 user_profile_service = UserProfileService()
+validatemail_service = ValidatemailService()
 
 
 @auth_bp.route("/signup/", methods=["GET", "POST"])
@@ -24,6 +25,7 @@ def show_signup_form():
 
         try:
             user = authentication_service.create_with_profile(**form.data)
+            validatemail_service.send_confirmation_email(user.email)
         except Exception as exc:
             return render_template("auth/signup_form.html", form=form, error=f'Error creating user: {exc}')
 
