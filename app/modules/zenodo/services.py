@@ -38,6 +38,8 @@ class ZenodoService(BaseService):
             # ZENODO_API_URL = os.getenv("ZENODO_API_URL", "https://sandbox.zenodo.org/api/deposit/depositions")
             ZENODO_API_URL = development_url
 
+        ZENODO_API_URL = development_url
+
         return ZENODO_API_URL
 
     def get_zenodo_access_token(self):
