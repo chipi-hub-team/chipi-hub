@@ -178,9 +178,15 @@ chico sundermann">
                             <i class="align-middle" data-feather="user"></i> 
                         </a>
 
+                        <a href="/dataset/download_all_datasets" class="btn btn-primary">
+                            <i data-feather="download" class="center-button-icon"></i>
+                            Download all datasets
+                        </a>
+
                         <a class="nav-link dropdown-toggle d-none d-sm-inline-block" href="#" data-bs-toggle="dropdown">
                             <span class="text-dark">{{ current_user.profile.surname }}, {{ current_user.profile.name }}</span>
                         </a>
+
                         <div class="dropdown-menu dropdown-menu-end">
                             <a class="dropdown-item" href="{{ url_for('profile.my_profile') }}">
                                 <i class="align-middle me-1" data-feather="user"></i> My profile</a>
