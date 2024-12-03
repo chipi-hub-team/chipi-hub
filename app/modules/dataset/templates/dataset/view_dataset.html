@@ -174,10 +174,20 @@
                         {{ dataset.get_uvlhub_doi() }}
                     </span>
                 </button>
+
+                
                 
                 <div id="dataset_doi_uvlhub" style="display: none">
                     {{ dataset.get_uvlhub_doi() }}
                 </div>
+                {% if current_user.is_authenticated %}
+                    <button type="button" class="btn btn-sm btn-primary" style="margin-top: 10px; border-radius: 5px" onclick="addRating('{{ dataset.id }}', null, '{{current_user.id}}')">
+                        <i id="unrated-icon" data-feather="star" class="center-button-icon" style="cursor: pointer"></i>
+                        <i id="rated-icon" class="fas fa-star" style="cursor: pointer"></i>
+                        <b>Star</b>
+                        <span id="rating-count-{{ dataset.id }}">{{dataset_ratings}}</span>
+                    </button>
+                {% endif %}
                 
             </div>
             {% endif %}
@@ -562,6 +572,52 @@
         .catch(error => console.error('Error loading file:', error));
     }
 
+    function addRating(datasetId, model_id, user_id) {
+            fetch('/rating/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    dataset_id: datasetId,
+                    model_id: model_id,
+                    user_id: user_id,
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                updateRatingCount(datasetId);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+
+    let user_already_rated = {{ user_already_rated | tojson }};
+    if (user_already_rated) {
+        document.getElementById('unrated-icon').style.display = "none";
+    } else {
+        document.getElementById('rated-icon').style.display = "none";
+    }
+
+    function updateRatingCount(datasetId) {
+        fetch(`/rating/total/dataset/${datasetId}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById(`rating-count-${datasetId}`).innerText = data.total_ratings;
+                user_already_rated = data.user_already_rated;
+                if (user_already_rated) {
+                    document.getElementById('unrated-icon').style.display = "none";
+                    document.getElementById('rated-icon').style.display = "inline";
+                } else {
+                    document.getElementById('rated-icon').style.display = "none";
+                    document.getElementById('unrated-icon').style.display = "inline";
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
 </script>
 
 {% endblock %}

@@ -14,6 +14,15 @@ class FeatureModel(db.Model):
     def __repr__(self):
         return f'FeatureModel<{self.id}>'
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'data_set_id': self.data_set_id,
+            'fm_meta_data_id': self.fm_meta_data_id,
+            'files': [file.to_dict() for file in self.files],
+            'fm_meta_data': self.fm_meta_data.to_dict()
+        }
+
 
 class FMMetaData(db.Model):
     id = db.Column(db.Integer, primary_key=True)
