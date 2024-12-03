@@ -11,7 +11,8 @@ from app.modules.dataset.models import (
     DSDownloadRecord,
     DSMetaData,
     DSViewRecord,
-    DataSet
+    DataSet,
+    Status
 )
 from core.repositories.BaseRepository import BaseRepository
 
@@ -117,6 +118,24 @@ class DataSetRepository(BaseRepository):
     def get_all_datasets(self):
         return self.model.query.all()
 
+    #These methods will help to access the datatests by status
+    def get_user_unpublished_datasets(self, current_user_id: int):
+        return (
+            self.model.query.join(DSMetaData)
+            .filter(DataSet.user_id ==  current_user_id, DSMetaData.ds_status == Status.UNPUBLISHED).all()
+        )
+
+    def get_user_unpublished_specific_dataset(self, current_user_id: int, dataset_id: int):
+            return (
+                self.model.query.join(DSMetaData)
+                .filter(DataSet.user_id ==  current_user_id, DSMetaData.ds_status == Status.UNPUBLISHED, DataSet.id == dataset_id)
+            )
+    
+    def get_user_published_datasets(self, current_user_id: int):
+        return (
+            self.model.query.join(DSMetaData)
+            .filter(DataSet.user_id == current_user_id, DSMetaData.ds_status == Status.PUBLISHED).all()
+        )    
 
 class DOIMappingRepository(BaseRepository):
     def __init__(self):

@@ -310,3 +310,25 @@ def get_unsynchronized_dataset(dataset_id):
         abort(404)
 
     return render_template("dataset/view_dataset.html", dataset=dataset)
+
+
+# this method will publish all unpublished datasets
+@dataset_bp.route("/dataset/publish", methods=["GET"])
+@login_required
+def publish_all_datasets():
+    dataset_service.publish_datasets(current_user_id=current_user.id)
+    return render_template(
+        "dataset/list_datasets.html",
+        datasets=dataset_service.get_synchronized(current_user.id),
+        local_datasets=dataset_service.get_unsynchronized(current_user.id),
+    )
+
+@dataset_bp.route("/dataset/<int:dataset_id>/publish", methods=["GET"])
+@login_required
+def publish_dataset(dataset_id):
+    dataset_service.publish_specific_dataset(current_user_id=current_user.id, dataset_id=dataset_id)
+    return render_template(
+        "dataset/list_datasets.html",
+        datasets=dataset_service.get_synchronized(current_user.id),
+        local_datasets=dataset_service.get_unsynchronized(current_user.id),
+    )
