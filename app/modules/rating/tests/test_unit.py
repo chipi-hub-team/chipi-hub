@@ -1,24 +1,109 @@
 import pytest
+from unittest.mock import patch, MagicMock
+from app.modules.rating.services import RatingService
 
 
-@pytest.fixture(scope='module')
-def test_client(test_client):
-    """
-    Extends the test_client fixture to add additional specific data for module testing.
-    """
-    with test_client.application.app_context():
-        # Add HERE new elements to the database that you want to exist in the test context.
-        # DO NOT FORGET to use db.session.add(<element>) and db.session.commit() to save the data.
-        pass
-
-    yield test_client
+@pytest.fixture
+def rating_service():
+    return RatingService()
 
 
-def test_sample_assertion(test_client):
-    """
-    Sample test to verify that the test framework and environment are working correctly.
-    It does not communicate with the Flask application; it only performs a simple assertion to
-    confirm that the tests in this module can be executed.
-    """
-    greeting = "Hello, World!"
-    assert greeting == "Hello, World!", "The greeting does not coincide with 'Hello, World!'"
+def test_add_or_remove_rating_add(rating_service):
+    with patch.object(rating_service.repository, 'add') as mock_add, \
+         patch.object(rating_service.repository, 'commit') as mock_commit, \
+         patch.object(rating_service, 'user_already_rated_dataset', return_value=False) as mock_user_already_rated:
+
+        dataset_id = 1
+        user_id = 1
+
+        rating_service.add_or_remove_rating(dataset_id, user_id)
+
+        mock_add.assert_called_once()
+        mock_commit.assert_called_once()
+        mock_user_already_rated.assert_called_once_with(dataset_id, user_id)
+
+
+def test_add_or_remove_rating_remove(rating_service):
+    with patch.object(rating_service, 'remove_ratings') as mock_remove_ratings, \
+         patch.object(rating_service, 'user_already_rated_dataset', return_value=True) as mock_user_already_rated:
+
+        dataset_id = 1
+        user_id = 1
+
+        rating_service.add_or_remove_rating(dataset_id, user_id)
+
+        mock_remove_ratings.assert_called_once_with(dataset_id, user_id)
+        mock_user_already_rated.assert_called_once_with(dataset_id, user_id)
+
+
+def test_remove_ratings(rating_service):
+    with patch.object(rating_service.repository, 'get_by_dataset_id_and_user_id') as mock_get_by_dataset_id_and_user_id, \
+         patch.object(rating_service.repository, 'delete') as mock_delete, \
+         patch.object(rating_service.repository, 'commit') as mock_commit:
+
+        mock_ratings = [MagicMock(id=1), MagicMock(id=2)]
+        mock_get_by_dataset_id_and_user_id.return_value = mock_ratings
+
+        dataset_id = 1
+        user_id = 1
+
+        rating_service.remove_ratings(dataset_id, user_id)
+
+        assert mock_delete.call_count == len(mock_ratings)
+        mock_commit.assert_called_once()
+
+
+def test_user_already_rated_dataset(rating_service):
+    with patch.object(rating_service.repository, 'get_by_dataset_id_and_user_id') as mock_get_by_dataset_id_and_user_id:
+
+        dataset_id = 1
+        user_id = 1
+
+        mock_get_by_dataset_id_and_user_id.return_value = [MagicMock(id=1)]
+
+        result = rating_service.user_already_rated_dataset(dataset_id, user_id)
+
+        assert result is True
+        mock_get_by_dataset_id_and_user_id.assert_called_once_with(dataset_id, user_id)
+
+
+def test_user_already_rated_dataset_no_ratings(rating_service):
+    with patch.object(rating_service.repository, 'get_by_dataset_id_and_user_id') as mock_get_by_dataset_id_and_user_id:
+
+        dataset_id = 1
+        user_id = 1
+
+        mock_get_by_dataset_id_and_user_id.return_value = []
+
+        result = rating_service.user_already_rated_dataset(dataset_id, user_id)
+
+        assert result is False
+        mock_get_by_dataset_id_and_user_id.assert_called_once_with(dataset_id, user_id)
+
+
+def test_get_total_ratings_for_dataset(rating_service):
+    with patch.object(rating_service.repository, 'get_query') as mock_get_query:
+
+        dataset_id = 1
+        mock_query = MagicMock()
+        mock_query.filter_by.return_value.count.return_value = 5
+        mock_get_query.return_value = mock_query
+
+        result = rating_service.get_total_ratings_for_dataset(dataset_id)
+
+        assert result == 5
+        mock_query.filter_by.assert_called_once_with(dataset_id=dataset_id)
+
+
+def test_get_total_ratings_for_dataset_no_ratings(rating_service):
+    with patch.object(rating_service.repository, 'get_query') as mock_get_query:
+
+        dataset_id = 1
+        mock_query = MagicMock()
+        mock_query.filter_by.return_value.count.return_value = 0
+        mock_get_query.return_value = mock_query
+
+        result = rating_service.get_total_ratings_for_dataset(dataset_id)
+
+        assert result == 0
+        mock_query.filter_by.assert_called_once_with(dataset_id=dataset_id)
