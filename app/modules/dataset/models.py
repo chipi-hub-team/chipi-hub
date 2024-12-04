@@ -29,8 +29,8 @@ class PublicationType(Enum):
     OTHER = 'other'
 
 class Status(Enum) :
-    UNPUBLISHED = "unpublished" # This state will serve  as the state needed to be in the stage area
-    PUBLISHED = "published" #this state will indicate that the dataset is published to Fakenodo
+    UNPUBLISHED = 'unpublished' # This state will serve  as the state needed to be in the stage area
+    PUBLISHED = 'published' #this state will indicate that the dataset is published to Fakenodo
 
 class Author(db.Model):
     id = db.Column(db.Integer, primary_key=True)

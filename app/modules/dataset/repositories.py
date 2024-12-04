@@ -128,7 +128,7 @@ class DataSetRepository(BaseRepository):
     def get_user_unpublished_specific_dataset(self, current_user_id: int, dataset_id: int):
             return (
                 self.model.query.join(DSMetaData)
-                .filter(DataSet.user_id ==  current_user_id, DSMetaData.ds_status == Status.UNPUBLISHED, DataSet.id == dataset_id)
+                .filter(DataSet.user_id ==  current_user_id, DataSet.id == dataset_id, DSMetaData.ds_status == Status.UNPUBLISHED).first()
             )
     
     def get_user_published_datasets(self, current_user_id: int):

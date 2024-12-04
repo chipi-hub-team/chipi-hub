@@ -21,7 +21,8 @@ from flask_login import login_required, current_user
 
 from app.modules.dataset.forms import DataSetForm
 from app.modules.dataset.models import (
-    DSDownloadRecord
+    DSDownloadRecord,
+    Status
 )
 from app.modules.dataset import dataset_bp
 from app.modules.dataset.services import (
@@ -84,6 +85,7 @@ def list_dataset():
         "dataset/list_datasets.html",
         datasets=dataset_service.get_synchronized(current_user.id),
         local_datasets=dataset_service.get_unsynchronized(current_user.id),
+        status = Status,
     )
 
 
@@ -292,17 +294,18 @@ def publish_all_datasets():
         local_datasets=dataset_service.get_unsynchronized(current_user.id),
     )
 
-@dataset_bp.route("/dataset/<int:dataset_id>/publish", methods=["GET"])
+@dataset_bp.route("/dataset/<int:dataset_id>/publish", methods=["POST"])
 @login_required
 def publish_dataset(dataset_id):
-    # Obtener el dataset
+
     dataset = dataset_service.get_or_404(dataset_id)
     dataset_service.publish_specific_dataset(current_user.id, dataset_id)
     try:
-        # Send dataset to zenodo
+
         zenodo_response_json = zenodo_service.create_new_deposition(dataset)
         response_data = json.dumps(zenodo_response_json)
         data = json.loads(response_data)
+        print("esta funcionando")
     except Exception as exc:
         logger.exception(f"Exception while creating dataset data in Zenodo: {exc}")
         return jsonify({"message": "Error while creating dataset in Zenodo."}), 500
@@ -330,7 +333,7 @@ def publish_dataset(dataset_id):
             logger.exception(f"Error while processing Zenodo actions: {e}")
             return jsonify({"message": f"Error during Zenodo publication process: {e}"}), 500
 
-        msg = "Dataset successfully published to Zenodo!"
-        return jsonify({"message": msg}), 200
+        print("Dataset successfully published to Zenodo!")
+        return redirect("/dataset/list")
 
     return jsonify({"message": "Failed to create deposition on Zenodo."}), 400
