@@ -41,8 +41,7 @@ def test_edit_profile_page_get(test_client):
 def test_get_profile_page(test_client):
 
     """
-    Se testeará que el usuario pueda acceder al perfil de uno de los
-    usuarios exsistentes mediante GET
+    Will test that an user will be able to access to another user's profile using GET
     """
     login_response = login(test_client, "user@example.com", "test1234")
     assert login_response.status_code == 200, "Login was unsuccessful."
@@ -55,8 +54,7 @@ def test_get_profile_page(test_client):
 
 def test_get_unexisting_profile_page(test_client):
     """
-    Se testeará que el usuario pueda acceder al perfil de uno de los
-    usuarios exsistentes mediante GET
+    Will test that a user wont be able to access a profile of a non existent user
     """
     login_response = login(test_client, "user@example.com", "test1234")
     assert login_response.status_code == 200, "Login was unsuccessful."
@@ -69,13 +67,30 @@ def test_get_unexisting_profile_page(test_client):
 
 def test_get_my_profile_page(test_client):
     """
-    Se testeará que el usuario pueda acceder al perfil de uno de los
-    usuarios exsistentes mediante GET
+    Will test that the current user will be able to access it's profile using GET
     """
     login_response = login(test_client, "user@example.com", "test1234")
     assert login_response.status_code == 200, "Login was unsuccessful."
 
     response = test_client.get("/profile/summary")
+    assert response.status_code == 200, "The profile page could not be accessed."
+    assert b"My profile" in response.data, "The expected content is not present on the page"
+
+    logout(test_client)
+
+def test_get_my_profile_page_alternative_version(test_client):
+    """
+    Will test that the current user will be able to access it's profile using GET
+    """
+    login_response = login(test_client, "user@example.com", "test1234")
+    assert login_response.status_code == 200, "Login was unsuccessful."
+
+    # Obtenemos el ID del usuario logueado desde la base de datos
+    user = User.query.filter_by(email='user@example.com').first()
+    assert user is not None, "User not found in the database."
+
+    # Realizamos la solicitud GET con el ID del usuario en la URL
+    response = test_client.get(f"/profile/summary/{user.id}")
     assert response.status_code == 200, "The profile page could not be accessed."
     assert b"My profile" in response.data, "The expected content is not present on the page"
 
