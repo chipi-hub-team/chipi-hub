@@ -78,6 +78,7 @@ def test_get_my_profile_page(test_client):
 
     logout(test_client)
 
+
 def test_get_my_profile_page_alternative_version(test_client):
     """
     Will test that the current user will be able to access it's profile using GET
