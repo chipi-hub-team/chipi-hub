@@ -21,12 +21,6 @@ class RatingRepository(BaseRepository):
     def get_by_dataset_id_and_user_id(self, dataset_id, user_id):
         return self.session.query(Rating).filter_by(dataset_id=dataset_id, user_id=user_id).all()
 
-    def get_by_model_id(self, model_id):
-        return self.session.query(Rating).filter_by(model_id=model_id).all()
-
-    def get_by_model_id_and_user_id(self, model_id, user_id):
-        return self.session.query(Rating).filter_by(model_id=model_id, user_id=user_id).all()
-
     def commit(self):
         self.session.commit()
 

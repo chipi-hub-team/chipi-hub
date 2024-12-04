@@ -181,7 +181,7 @@
                     {{ dataset.get_uvlhub_doi() }}
                 </div>
                 {% if current_user.is_authenticated %}
-                    <button type="button" class="btn btn-sm btn-primary" style="margin-top: 10px; border-radius: 5px" onclick="addRating('{{ dataset.id }}', null, '{{current_user.id}}')">
+                    <button type="button" class="btn btn-sm btn-primary" style="margin-top: 10px; border-radius: 5px" onclick="addRating('{{ dataset.id }}', '{{current_user.id}}')">
                         <i id="unrated-icon" data-feather="star" class="center-button-icon" style="cursor: pointer"></i>
                         <i id="rated-icon" class="fas fa-star" style="cursor: pointer"></i>
                         <b>Star</b>
@@ -572,7 +572,7 @@
         .catch(error => console.error('Error loading file:', error));
     }
 
-    function addRating(datasetId, model_id, user_id) {
+    function addRating(datasetId, user_id) {
             fetch('/rating/add', {
                 method: 'POST',
                 headers: {
@@ -580,7 +580,6 @@
                 },
                 body: JSON.stringify({
                     dataset_id: datasetId,
-                    model_id: model_id,
                     user_id: user_id,
                 })
             })
