@@ -28,9 +28,11 @@ class PublicationType(Enum):
     WORKING_PAPER = 'workingpaper'
     OTHER = 'other'
 
-class Status(Enum) :
-    UNPUBLISHED = 'unpublished' # This state will serve  as the state needed to be in the stage area
-    PUBLISHED = 'published' #this state will indicate that the dataset is published to Fakenodo
+
+class Status(Enum):
+    UNPUBLISHED = 'unpublished'  # This state will serve  as the state needed to be in the stage area
+    PUBLISHED = 'published'  # this state will indicate that the dataset is published to Fakenodo
+
 
 class Author(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -70,6 +72,7 @@ class DSMetaData(db.Model):
     ds_metrics = db.relationship('DSMetrics', uselist=False, backref='ds_meta_data', cascade="all, delete")
     authors = db.relationship('Author', backref='ds_meta_data', lazy=True, cascade="all, delete")
     ds_status = db.Column(SQLAlchemyEnum(Status), nullable=False, default=Status.UNPUBLISHED)
+
 
 class DataSet(db.Model):
     id = db.Column(db.Integer, primary_key=True)

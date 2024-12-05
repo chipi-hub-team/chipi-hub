@@ -65,8 +65,7 @@ def create_dataset():
         except Exception as exc:
             logger.exception(f"Exception while create dataset data in local {exc}")
             return jsonify({"Exception while create dataset data in local: ": str(exc)}), 400
-        
-        
+
         # Delete temp folder
         file_path = current_user.temp_folder()
         if os.path.exists(file_path) and os.path.isdir(file_path):
@@ -85,7 +84,7 @@ def list_dataset():
         "dataset/list_datasets.html",
         datasets=dataset_service.get_synchronized(current_user.id),
         local_datasets=dataset_service.get_unsynchronized(current_user.id),
-        status = Status,
+        status=Status,
     )
 
 
@@ -294,6 +293,7 @@ def publish_all_datasets():
         local_datasets=dataset_service.get_unsynchronized(current_user.id),
     )
 
+
 @dataset_bp.route("/dataset/<int:dataset_id>/publish", methods=["POST"])
 @login_required
 def publish_dataset(dataset_id):
@@ -313,7 +313,7 @@ def publish_dataset(dataset_id):
     if data.get("conceptrecid"):
         deposition_id = data.get("id")
 
-        #Update dataset with deposition ID from zeznodo
+        # Update dataset with deposition ID from zeznodo
         try:
             dataset_service.update_dsmetadata(dataset.ds_meta_data_id, deposition_id=deposition_id)
 
@@ -322,7 +322,7 @@ def publish_dataset(dataset_id):
                     zenodo_service.upload_file(dataset, deposition_id, feature_model)
                 except Exception as e:
                     logger.exception(f"Error uploading feature model to Zenodo: {e}")
-                    continue 
+                    continue
 
             zenodo_service.publish_deposition(deposition_id)
 

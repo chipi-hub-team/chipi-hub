@@ -142,7 +142,7 @@ class DataSetService(BaseService):
 
     def get_all_datasets(self):
         return self.repository.get_all_datasets()
-    
+
     # This method will help in the proccess of publishing datasets
     def publish_datasets(self, current_user_id):
         try:
@@ -165,6 +165,7 @@ class DataSetService(BaseService):
         except Exception as exc:
             logger.error(f"Exception setting dataset to published: {exc}")
             self.repository.session.rollback()
+
 
 class AuthorService(BaseService):
     def __init__(self):
