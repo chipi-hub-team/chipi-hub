@@ -24,7 +24,7 @@ jobs:
           exit 1
         fi
 
-    - name: Trigger Deployment Webhook
+    - name: Trigger Deployment Render
       env:
         WEBHOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
       run: |
