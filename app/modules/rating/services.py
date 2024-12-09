@@ -16,12 +16,11 @@ class RatingService(BaseService):
             self.remove_ratings(dataset_id, user_id)
 
     def remove_ratings(self, dataset_id, user_id):
-        ratings = self.repository.get_by_dataset_id_and_user_id(dataset_id,user_id)
+        ratings = self.repository.get_by_dataset_id_and_user_id(dataset_id, user_id)
         if ratings:
             for rating in ratings:
                 self.repository.delete(rating)
             self.repository.commit()
-
 
     def user_already_rated_dataset(self, dataset_id, user_id):
         if self.repository.get_by_dataset_id_and_user_id(dataset_id, user_id):

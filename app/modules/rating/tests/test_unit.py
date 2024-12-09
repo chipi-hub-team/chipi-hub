@@ -37,12 +37,12 @@ def test_add_or_remove_rating_remove(rating_service):
 
 
 def test_remove_ratings(rating_service):
-    with patch.object(rating_service.repository, 'get_by_dataset_id_and_user_id') as mock_get_by_dataset_id_and_user_id, \
+    with patch.object(rating_service.repository, 'get_by_dataset_id_and_user_id') as mock_get_by_datasetid_and_userid, \
          patch.object(rating_service.repository, 'delete') as mock_delete, \
          patch.object(rating_service.repository, 'commit') as mock_commit:
 
         mock_ratings = [MagicMock(id=1), MagicMock(id=2)]
-        mock_get_by_dataset_id_and_user_id.return_value = mock_ratings
+        mock_get_by_datasetid_and_userid.return_value = mock_ratings
 
         dataset_id = 1
         user_id = 1
@@ -54,31 +54,31 @@ def test_remove_ratings(rating_service):
 
 
 def test_user_already_rated_dataset(rating_service):
-    with patch.object(rating_service.repository, 'get_by_dataset_id_and_user_id') as mock_get_by_dataset_id_and_user_id:
+    with patch.object(rating_service.repository, 'get_by_dataset_id_and_user_id') as mock_get_by_datasetid_and_userid:
 
         dataset_id = 1
         user_id = 1
 
-        mock_get_by_dataset_id_and_user_id.return_value = [MagicMock(id=1)]
+        mock_get_by_datasetid_and_userid.return_value = [MagicMock(id=1)]
 
         result = rating_service.user_already_rated_dataset(dataset_id, user_id)
 
         assert result is True
-        mock_get_by_dataset_id_and_user_id.assert_called_once_with(dataset_id, user_id)
+        mock_get_by_datasetid_and_userid.assert_called_once_with(dataset_id, user_id)
 
 
 def test_user_already_rated_dataset_no_ratings(rating_service):
-    with patch.object(rating_service.repository, 'get_by_dataset_id_and_user_id') as mock_get_by_dataset_id_and_user_id:
+    with patch.object(rating_service.repository, 'get_by_dataset_id_and_user_id') as mock_get_by_datasetid_and_userid:
 
         dataset_id = 1
         user_id = 1
 
-        mock_get_by_dataset_id_and_user_id.return_value = []
+        mock_get_by_datasetid_and_userid.return_value = []
 
         result = rating_service.user_already_rated_dataset(dataset_id, user_id)
 
         assert result is False
-        mock_get_by_dataset_id_and_user_id.assert_called_once_with(dataset_id, user_id)
+        mock_get_by_datasetid_and_userid.assert_called_once_with(dataset_id, user_id)
 
 
 def test_get_total_ratings_for_dataset(rating_service):

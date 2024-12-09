@@ -26,6 +26,6 @@ class RatingRepository(BaseRepository):
 
     def get_query(self):
         return self.session.query(Rating)
-    
+
     def query(self):
         return self.get_query()
