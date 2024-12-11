@@ -143,15 +143,19 @@ class DataSetService(BaseService):
     def get_all_datasets(self):
         return self.repository.get_all_datasets()
 
+    def get_all_user_unpublished_datasets(self, user_id):
+        return self.repository.get_user_unpublished_datasets(user_id)
+
     # This method will help in the proccess of publishing datasets
     def publish_datasets(self, current_user_id):
         try:
             datasets = self.repository.get_user_unpublished_datasets(current_user_id)
             for dataset in datasets:
-                dataset.ds_meta_data.ds_status = Status.PUBLISHED
-                self.repository.session.commit()
-            else:
-                raise ValueError("Dataset is not in 'UNPUBLISHED' status")
+                if (dataset.ds_meta_data.ds_status == Status.UNPUBLISHED):
+                    dataset.ds_meta_data.ds_status = Status.PUBLISHED
+                    self.repository.session.commit()
+                else:
+                    raise ValueError("Dataset is not in 'UNPUBLISHED' status")
         except Exception as exc:
             logger.error(f"Exception setting dataset to published: {exc}")
             self.repository.session.rollback()
