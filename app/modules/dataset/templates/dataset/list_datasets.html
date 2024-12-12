@@ -6,15 +6,13 @@
 
     <h1 class="h3 mb-3">My datasets</h1>
 
-    {% if datasets %}
+    {% if local_datasets %}
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-
                     <form action="{{ url_for('dataset.publish_all_datasets') }}" method="POST">
                         <button type="submit" class="btn btn-primary">Upload All datasets to Zenodo</button>
                     </form>
-
                     <div class="card-header">
                         <h5 class="card-title">My unpublished datasets (stagging area)</h5>
                     </div>
@@ -29,7 +27,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        {% for dataset in datasets %}
+                        {% for dataset in local_datasets %}
                             {% if dataset.ds_meta_data.ds_status  == status.UNPUBLISHED %}
                                 <tr>
                                     <td>
@@ -39,18 +37,13 @@
                                     </td>
                                     <td>{{ dataset.ds_meta_data.description }}</td>
                                     <td>{{ dataset.ds_meta_data.publication_type.name.replace('_', ' ').title() }}</td>
-                                    <td><a href="{{ dataset.get_uvlhub_doi() }}"
-                                        target="_blank">{{ dataset.get_uvlhub_doi() }}</a></td>
+                                    <td> Unpublished datasets dont have a DOI </td>
                                     <td>
-                                        <a href="{{ dataset.get_uvlhub_doi() }}">
-                                            <i data-feather="eye"></i>
-                                        </a>
                                         <a href="{{ url_for('dataset.download_dataset', dataset_id=dataset.id) }}">
                                             <i data-feather="download"></i>
                                         </a>
                                     </td>
                                     <td>
-                                        <!-- BotÃ³n de Subir a Zenodo solo si el dataset es del usuario loggeado -->
                                         {% if dataset.user_id == current_user.id and dataset.ds_meta_data.ds_status  == status.UNPUBLISHED %}
                                             <form action="{{ url_for('dataset.publish_dataset', dataset_id=dataset.id) }}" method="POST">
                                                 <button type="submit" class="btn btn-primary">Upload to Zenodo</button>

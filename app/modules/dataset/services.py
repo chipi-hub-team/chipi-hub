@@ -156,8 +156,7 @@ class DataSetService(BaseService):
                     self.repository.session.commit()
                 else:
                     raise ValueError("Dataset is not in 'UNPUBLISHED' status")
-        except Exception as exc:
-            logger.error(f"Exception setting dataset to published: {exc}")
+        except Exception:
             self.repository.session.rollback()
 
     # This method will help in the proccess of publishing a specific dataset
@@ -166,8 +165,7 @@ class DataSetService(BaseService):
             dataset = self.repository.get_user_unpublished_specific_dataset(current_user_id, dataset_id)
             dataset.ds_meta_data.ds_status = Status.PUBLISHED
             self.repository.session.commit()
-        except Exception as exc:
-            logger.error(f"Exception setting dataset to published: {exc}")
+        except Exception:
             self.repository.session.rollback()
 
 
