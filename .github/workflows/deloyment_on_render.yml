@@ -1,10 +1,10 @@
-name: Deploy on Webhook
+name: Deploy on Render 
 
 on:
   workflow_run:
     workflows: 
-      - "Python Lint"
-      - "Run tests"
+      - "Format checker"
+      - "Tests"
     types:
       - completed
 
