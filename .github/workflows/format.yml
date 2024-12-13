@@ -1,10 +1,11 @@
-name: Python Lint
+name: Format checker
 
 on:
   push:
     branches: [master]
   pull_request:
     branches: [master]
+  workflow_dispatch:
 
 jobs:
   lint:
@@ -26,3 +27,9 @@ jobs:
     - name: Lint with flake8
       run: |
         flake8 app
+  check:
+    name: Conventional Commits
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: webiny/action-conventional-commits@8bc41ff4e7d423d56fa4905f6ff79209a78776c7

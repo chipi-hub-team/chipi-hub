@@ -7,9 +7,8 @@ import os
 
 @fakenodo_bp.route('/fakenodo/deposit/depositions', methods=['GET'])
 def get_all_depositions():
-    path = "modules/fakenodo/placeholders/deposition.json"
-    if os.getenv("FLASK_ENV") == "development":
-        path = "app/" + path
+    workdir = os.getenv("WORKING_DIR")
+    path = f"{workdir}app/modules/fakenodo/placeholders/deposition.json"
     with open(path) as f:
         data = json.load(f)
     return jsonify(data)
@@ -17,9 +16,8 @@ def get_all_depositions():
 
 @fakenodo_bp.route('/fakenodo/deposit/depositions/<int:id>', methods=['GET'])
 def get_deposition(id):
-    path = "modules/fakenodo/placeholders/deposition.json"
-    if os.getenv("FLASK_ENV") == "development":
-        path = "app/" + path
+    workdir = os.getenv("WORKING_DIR")
+    path = f"{workdir}/app/modules/fakenodo/placeholders/deposition.json"
     with open(path) as f:
         data = json.load(f)
         data['doi'] = str(uuid.uuid4())
