@@ -1,6 +1,9 @@
+import time
+from unittest.mock import patch
 import pytest
 from flask import url_for
 
+from app import mail_service
 from app.modules.auth.services import AuthenticationService
 from app.modules.auth.repositories import UserRepository
 from app.modules.profile.repositories import UserProfileRepository
@@ -117,3 +120,72 @@ def test_service_create_with_profile_fail_no_password(clean_database):
 
     assert UserRepository().count() == 0
     assert UserProfileRepository().count() == 0
+
+
+def test_signup_send_confirmation_email(test_client, clean_database):
+    data = {
+        "name": "Test",
+        "surname": "Foo",
+        "email": "test_confirmation@example.com",
+        "password": "test1234",
+    }
+
+    with mail_service.mail.record_messages() as outbox:
+        test_client.post("/signup", data=data, follow_redirects=True)
+        assert len(outbox) == 1
+
+
+def test_create_with_profile_create_inactive_user(test_client, clean_database):
+    data = {
+        "name": "Test",
+        "surname": "Foo",
+        "email": "user@example.com",
+        "password": "test1234"
+    }
+    user = AuthenticationService().create_with_profile(**data)
+    assert UserRepository().count() == 1
+    assert UserProfileRepository().count() == 1
+    assert user.active is False
+
+
+def test_confirm_user_token_expired(test_client):
+    email = "expired@example.com"
+
+    with patch("time.time", return_value=time.time() - (AuthenticationService.MAX_AGE + 1)):
+        token = AuthenticationService().get_token_from_email(email)
+
+    url = url_for('auth.confirm_user', token=token, _external=False)
+    response = test_client.get(url, follow_redirects=True)
+    assert response.request.path == url_for("auth.show_signup_form", _external=False)
+
+
+def test_confirm_user_token_manipulated(test_client):
+    email = "manipulated@example.com"
+
+    AuthenticationService.SALT = "bad_salt"
+    token = AuthenticationService().get_token_from_email(email)
+
+    AuthenticationService.SALT = "user-confirm"
+    url = url_for('auth.confirm_user', token=token, _external=False)
+    response = test_client.get(url, follow_redirects=True)
+    assert response.request.path == url_for("auth.show_signup_form", _external=False)
+
+
+def test_confirm_user_active_user(test_client):
+    data = {
+        "name": "Test",
+        "surname": "Foo",
+        "email": "user@example.com",
+        "password": "test1234"
+    }
+    user = AuthenticationService().create_with_profile(**data)
+    assert user.active is False
+
+    token = AuthenticationService().get_token_from_email(user.email)
+
+    url = url_for('auth.confirm_user', token=token, _external=False)
+    response = test_client.get(url, follow_redirects=True)
+    assert response.request.path == url_for("public.index", _external=False)
+
+    user = UserRepository().get_by_email(user.email)
+    assert user.active is True

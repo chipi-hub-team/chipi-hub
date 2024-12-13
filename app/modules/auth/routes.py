@@ -1,15 +1,13 @@
-from flask import render_template, redirect, url_for, request
+from flask import flash, render_template, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user
 
 from app.modules.auth import auth_bp
 from app.modules.auth.forms import SignupForm, LoginForm
 from app.modules.auth.services import AuthenticationService
 from app.modules.profile.services import UserProfileService
-from app.modules.validatemail.services import ValidatemailService
 
 authentication_service = AuthenticationService()
 user_profile_service = UserProfileService()
-validatemail_service = ValidatemailService()
 
 
 @auth_bp.route("/signup/", methods=["GET", "POST"])
@@ -25,15 +23,27 @@ def show_signup_form():
 
         try:
             user = authentication_service.create_with_profile(**form.data)
-            validatemail_service.send_confirmation_email(user.email)
+            authentication_service.send_confirmation_email(user.email)
+            flash("Please, confirm your email", "info")
         except Exception as exc:
             return render_template("auth/signup_form.html", form=form, error=f'Error creating user: {exc}')
 
-        # Log user
-        login_user(user, remember=True)
         return redirect(url_for('public.index'))
 
     return render_template("auth/signup_form.html", form=form)
+
+
+@auth_bp.route("/confirm_user/<token>", methods=["GET"])
+def confirm_user(token):
+    try:
+        user = authentication_service.confirm_user_with_token(token)
+    except Exception as exc:
+        flash(exc.args[0], "danger")
+        return redirect(url_for('auth.show_signup_form'))
+
+    # Log user
+    login_user(user, remember=True)
+    return redirect(url_for('public.index'))
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
