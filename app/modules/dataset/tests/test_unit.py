@@ -1,4 +1,5 @@
 import pytest
+from app.modules.dataset import services
 
 
 @pytest.fixture(scope="module")
@@ -22,3 +23,9 @@ def test_download_all_dataset(test_client):
     assert response.status_code == 200, "Download all datasets was unsuccessful"
 
     test_client.get("/logout", follow_redirects=True)
+
+
+def test_checksum_and_size():
+    checksum, size = services.calculate_checksum_and_size("app/modules/dataset/tests/test_file.txt")
+    assert checksum == "1ca813544406308899f8764f9d5a3422"
+    assert size == 30
