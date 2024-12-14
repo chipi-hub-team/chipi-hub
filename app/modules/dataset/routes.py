@@ -274,7 +274,10 @@ def subdomain_index(doi):
 @login_required
 def get_unsynchronized_dataset(dataset_id):
 
-    # Get dataset
+    if (dataset_service.get_by_id(dataset_id).user_id != current_user.id):
+        abort(403)
+
+    # Get dataset in case is from the current user
     dataset = dataset_service.get_unsynchronized_dataset(current_user.id, dataset_id)
 
     if not dataset:

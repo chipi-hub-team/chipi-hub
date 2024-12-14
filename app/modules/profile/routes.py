@@ -1,6 +1,6 @@
 from app.modules.auth.models import User
 from app.modules.auth.services import AuthenticationService
-from app.modules.dataset.models import DataSet
+from app.modules.dataset.models import DataSet, Status
 from flask import abort, render_template, redirect, url_for, request
 from flask_login import login_required, current_user
 
@@ -66,5 +66,6 @@ def my_profile(user_id):
         datasets=user_datasets_pagination.items,
         pagination=user_datasets_pagination,
         total_datasets=total_datasets_count,
-        is_my_profile=is_my_profile
+        is_my_profile=is_my_profile,
+        status=Status
     )
