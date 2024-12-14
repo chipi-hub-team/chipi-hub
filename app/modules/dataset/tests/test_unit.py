@@ -68,3 +68,59 @@ def test_publish_dataset_success(test_client):
         mock_get_dataset.assert_called_once_with(dataset_id)
 
     logout(test_client)
+
+
+def test_publish_all_datasets_success(test_client):
+    """
+    Positive case: Publish all unpublished datasets.
+    """
+    login_response = login(test_client, "testuser@example.com", "1234")
+    assert login_response.status_code == 200, "Login was failed."
+
+    with patch("app.modules.dataset.services.DataSetService.get_all_user_unpublished_datasets") as mock_get_datasets, \
+         patch("app.modules.zenodo.services.ZenodoService.create_new_deposition") as mock_zenodo, \
+         patch("app.modules.zenodo.services.ZenodoService.upload_file") as mock_upload_file:
+
+        mock_upload_file.return_value = None
+        mock_get_datasets.return_value = [
+            MagicMock(
+                id=500,
+                ds_meta_data_id=1000,
+                ds_meta_data=MagicMock(
+                    ds_status="unpublished",
+                    title="Dataset 1",
+                    description="Description of dataset 1",
+                    publication_type="DATA_MANAGEMENT_PLAN",
+                    dataset_doi=None,
+                ),
+                feature_models=[
+                    MagicMock(id=101, name="FeatureModel1"),
+                    MagicMock(id=102, name="FeatureModel2"),
+                ],
+            ),
+            MagicMock(
+                id=501,
+                ds_meta_data_id=1001,
+                ds_meta_data=MagicMock(
+                    ds_status="unpublished",
+                    title="Dataset 2",
+                    description="Description of dataset 2",
+                    publication_type="DATA_MANAGEMENT_PLAN",
+                    dataset_doi=None,
+                ),
+                feature_models=[
+                    MagicMock(id=103, name="FeatureModel3"),
+                ],
+            ),
+        ]
+
+        mock_zenodo.return_value = {"conceptrecid": "12345", "id": "67890"}
+
+        print("Mocked datasets:", mock_get_datasets.return_value)
+        print("Mocked Zenodo response:", mock_zenodo.return_value)
+        response = test_client.post("/dataset/publish", follow_redirects=True)
+        print("Response", response.get_json())
+        assert response.status_code == 200, "Publishing all unpublished datasets failed."
+        mock_get_datasets.assert_called()
+
+    logout(test_client)
