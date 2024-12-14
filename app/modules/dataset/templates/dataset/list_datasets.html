@@ -31,7 +31,7 @@
                             {% if dataset.ds_meta_data.ds_status  == status.UNPUBLISHED %}
                                 <tr>
                                     <td>
-                                        <a href="{{ dataset.get_uvlhub_doi() }}">
+                                        <a href="{{ url_for('dataset.get_unsynchronized_dataset', dataset_id=dataset.id) }}">
                                             {{ dataset.ds_meta_data.title }}
                                         </a>
                                     </td>
