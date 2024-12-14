@@ -143,3 +143,22 @@ def test_publish_dataset_already_published(test_client):
         assert response.json["message"] == "Dataset is already published."
 
     logout(test_client)
+
+
+def test_publish_all_datasets_with_errors(test_client):
+    """
+    Negative case: Publish all unpublished datasets with some errors
+    """
+    login_response = login(test_client, "testuser@example.com", "1234")
+    assert login_response.status_code == 200, "Login fue fallido."
+
+    with patch("app.modules.dataset.services.DataSetService.get_all_user_unpublished_datasets") as mock_get_datasets, \
+         patch("app.modules.zenodo.services.ZenodoService.create_new_deposition") as mock_zenodo:
+        mock_get_datasets.return_value = [MagicMock(id=2), MagicMock(id=3)]
+        mock_zenodo.side_effect = Exception("Error creating deposition")
+
+        response = test_client.post("/dataset/publish", follow_redirects=True)
+        assert response.status_code == 207, "The errored publication did not return the expected status."
+        assert "Publication completed with errors." in response.json["message"]
+
+    logout(test_client)
