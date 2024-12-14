@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from app.modules.conftest import login, logout
 from app.modules.auth.models import User
+from app.modules.dataset.models import Status
 from app import db
 
 
@@ -122,5 +123,23 @@ def test_publish_all_datasets_success(test_client):
         print("Response", response.get_json())
         assert response.status_code == 200, "Publishing all unpublished datasets failed."
         mock_get_datasets.assert_called()
+
+    logout(test_client)
+
+
+def test_publish_dataset_already_published(test_client):
+    """
+    Negative case: Try to publish an already published dataset.
+    """
+    dataset_id = 1
+    login_response = login(test_client, "testuser@example.com", "1234")
+    assert login_response.status_code == 200, "Login was failed."
+
+    with patch("app.modules.dataset.services.DataSetService.get_or_404") as mock_get_dataset:
+        mock_get_dataset.return_value = MagicMock(ds_meta_data=MagicMock(ds_status=Status.PUBLISHED))
+
+        response = test_client.post(f"/dataset/{dataset_id}/publish", follow_redirects=True)
+        assert response.status_code == 400, "It should not allow publishing an already published dataset."
+        assert response.json["message"] == "Dataset is already published."
 
     logout(test_client)
