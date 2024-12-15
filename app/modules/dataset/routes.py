@@ -32,12 +32,14 @@ from app.modules.dataset.services import (
     DataSetService,
     DOIMappingService
 )
+from app.modules.rating.services import RatingService
 from app.modules.zenodo.services import ZenodoService
 
 logger = logging.getLogger(__name__)
 
 
 dataset_service = DataSetService()
+rating_service = RatingService()
 author_service = AuthorService()
 dsmetadata_service = DSMetaDataService()
 zenodo_service = ZenodoService()
@@ -288,12 +290,24 @@ def subdomain_index(doi):
     if not ds_meta_data:
         abort(404)
 
-    # Get dataset
+    # Get dataset data
     dataset = ds_meta_data.data_set
+    dataset_ratings = rating_service.get_total_ratings_for_dataset(dataset.id)
+    user_already_rated = False
+    if current_user.is_authenticated:
+        user_already_rated = rating_service.user_already_rated_dataset(dataset.id, current_user.id)
 
     # Save the cookie to the user's browser
     user_cookie = ds_view_record_service.create_cookie(dataset=dataset)
-    resp = make_response(render_template("dataset/view_dataset.html", dataset=dataset, current_user=current_user))
+    resp = make_response(
+        render_template(
+            "dataset/view_dataset.html",
+            dataset=dataset,
+            current_user=current_user,
+            dataset_ratings=dataset_ratings,
+            user_already_rated=user_already_rated
+        )
+    )
     resp.set_cookie("view_cookie", user_cookie)
 
     return resp
