@@ -35,7 +35,7 @@ def edit_profile():
 def my_profile(user_id):
     is_my_profile = False
     # ver si el user_id es none(mi perfil) o es alguno(perfil de otro)
-    if user_id is None:
+    if user_id is None or user_id == current_user.id:
         user_id = current_user.id
         is_my_profile = True
 
