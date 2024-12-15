@@ -286,12 +286,10 @@ def get_unsynchronized_dataset(dataset_id):
     return render_template("dataset/view_dataset.html", dataset=dataset)
 
 
-# this method will publish all unpublished datasets
 @dataset_bp.route("/dataset/publish", methods=["POST"])
 @login_required
 def publish_all_datasets():
     datasets = dataset_service.get_unsynchronized(current_user.id)
-
     errors = []
 
     for dataset in datasets:
@@ -299,36 +297,33 @@ def publish_all_datasets():
             zenodo_response_json = zenodo_service.create_new_deposition(dataset)
             response_data = json.dumps(zenodo_response_json)
             data = json.loads(response_data)
-        except Exception:
-            errors.append(f"Dataset ID {dataset.id}: Error creating dataset in Zenodo.")
-            continue
 
-        if not data.get("conceptrecid"):
-            errors.append(f"Dataset ID {dataset.id}: Failed to create deposition on Zenodo.")
-            continue
+            if not data.get("conceptrecid"):
+                errors.append(f"Dataset ID {dataset.id}: Failed to create deposition on Zenodo.")
+                continue
 
-        deposition_id = data.get("id")
+            deposition_id = data.get("id")
 
-        # Update dataset with deposition ID from Zenodo
-        try:
-            dataset_service.update_dsmetadata(dataset.ds_meta_data_id, deposition_id=deposition_id)
+            try:
+                dataset_service.update_dsmetadata(dataset.ds_meta_data_id, deposition_id=deposition_id)
 
-            for feature_model in dataset.feature_models:
-                try:
-                    zenodo_service.upload_file(dataset, deposition_id, feature_model)
-                except Exception:
-                    errors.append(f"Dataset ID {dataset.id}: Error uploading feature model.")
-                    continue
+                for feature_model in dataset.feature_models:
+                    try:
+                        zenodo_service.upload_file(dataset, deposition_id, feature_model)
+                    except Exception as e:
+                        errors.append(f"Dataset ID {dataset.id}: Error uploading feature model. {str(e)}")
 
-            zenodo_service.publish_deposition(deposition_id)
-            deposition_doi = zenodo_service.get_doi(deposition_id)
-            dataset_service.update_dsmetadata(dataset.ds_meta_data_id, dataset_doi=deposition_doi)
+                zenodo_service.publish_deposition(deposition_id)
+                deposition_doi = zenodo_service.get_doi(deposition_id)
+                dataset_service.update_dsmetadata(dataset.ds_meta_data_id, dataset_doi=deposition_doi)
 
-            logger.info(f"Dataset ID {dataset.id}: Successfully published to Zenodo!")
+                logger.info(f"Dataset ID {dataset.id}: Successfully published to Zenodo!")
 
-        except Exception:
-            errors.append(f"Dataset ID {dataset.id}: Error during publication process.")
-            continue
+            except Exception as e:
+                errors.append(f"Dataset ID {dataset.id}: Error during publication process. {str(e)}")
+
+        except Exception as e:
+            errors.append(f"Dataset ID {dataset.id}: Error creating dataset in Zenodo. {str(e)}")
 
     if errors:
         return jsonify({"message": "Publication completed with errors.", "errors": errors}), 207
