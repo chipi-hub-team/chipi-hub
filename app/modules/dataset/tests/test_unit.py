@@ -71,6 +71,7 @@ def test_publish_dataset_success(test_client):
     logout(test_client)
 
 
+@pytest.mark.local
 def test_publish_all_datasets_success(test_client):
     """
     Positive case: Publish all unpublished datasets.
@@ -127,6 +128,7 @@ def test_publish_all_datasets_success(test_client):
     logout(test_client)
 
 
+@pytest.mark.local
 def test_publish_dataset_already_published(test_client):
     """
     Negative case: Try to publish an already published dataset.
