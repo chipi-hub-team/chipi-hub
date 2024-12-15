@@ -317,8 +317,6 @@ def publish_all_datasets():
                 deposition_doi = zenodo_service.get_doi(deposition_id)
                 dataset_service.update_dsmetadata(dataset.ds_meta_data_id, dataset_doi=deposition_doi)
 
-                logger.info(f"Dataset ID {dataset.id}: Successfully published to Zenodo!")
-
             except Exception as e:
                 errors.append(f"Dataset ID {dataset.id}: Error during publication process. {str(e)}")
 
@@ -356,14 +354,14 @@ def publish_dataset(dataset_id):
         for feature_model in dataset.feature_models:
             try:
                 zenodo_service.upload_file(dataset, deposition_id, feature_model)
-            except Exception:
-                continue
+            except Exception as e:
+                # Log the error instead of using continue
+                logger.error(f"Error uploading feature model for dataset {dataset.id}: {str(e)}")
 
         zenodo_service.publish_deposition(deposition_id)
         deposition_doi = zenodo_service.get_doi(deposition_id)
         dataset_service.update_dsmetadata(dataset.ds_meta_data_id, dataset_doi=deposition_doi)
 
-        logger.info(f"Dataset ID {dataset.id}: Successfully published to Zenodo!")
         return redirect("/dataset/list")
 
     except Exception as exc:
