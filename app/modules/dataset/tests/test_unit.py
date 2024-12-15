@@ -32,6 +32,7 @@ def test_download_all_dataset(test_client):
     test_client.get("/logout", follow_redirects=True)
 
 
+@pytest.mark.local
 def test_publish_dataset_success(test_client):
     """
     Positive case: Publish an unpublished dataset.
@@ -128,7 +129,6 @@ def test_publish_all_datasets_success(test_client):
     logout(test_client)
 
 
-@pytest.mark.local
 def test_publish_dataset_already_published(test_client):
     """
     Negative case: Try to publish an already published dataset.
