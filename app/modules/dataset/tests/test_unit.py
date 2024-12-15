@@ -78,7 +78,7 @@ def test_publish_all_datasets_success(test_client):
     login_response = login(test_client, "testuser@example.com", "1234")
     assert login_response.status_code == 200, "Login was failed."
 
-    with patch("app.modules.dataset.services.DataSetService.get_all_user_unpublished_datasets") as mock_get_datasets, \
+    with patch("app.modules.dataset.services.DataSetService.get_unsynchronized") as mock_get_datasets, \
          patch("app.modules.zenodo.services.ZenodoService.create_new_deposition") as mock_zenodo, \
          patch("app.modules.zenodo.services.ZenodoService.upload_file") as mock_upload_file:
 
@@ -152,7 +152,7 @@ def test_publish_all_datasets_with_errors(test_client):
     login_response = login(test_client, "testuser@example.com", "1234")
     assert login_response.status_code == 200, "Login fue fallido."
 
-    with patch("app.modules.dataset.services.DataSetService.get_all_user_unpublished_datasets") as mock_get_datasets, \
+    with patch("app.modules.dataset.services.DataSetService.get_unsynchronized") as mock_get_datasets, \
          patch("app.modules.zenodo.services.ZenodoService.create_new_deposition") as mock_zenodo:
         mock_get_datasets.return_value = [MagicMock(id=2), MagicMock(id=3)]
         mock_zenodo.side_effect = Exception("Error creating deposition")

@@ -290,7 +290,7 @@ def get_unsynchronized_dataset(dataset_id):
 @dataset_bp.route("/dataset/publish", methods=["POST"])
 @login_required
 def publish_all_datasets():
-    datasets = dataset_service.get_all_user_unpublished_datasets(current_user.id)
+    datasets = dataset_service.get_unsynchronized(current_user.id)
 
     errors = []
 
