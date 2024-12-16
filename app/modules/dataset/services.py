@@ -8,7 +8,7 @@ import uuid
 from flask import request
 
 from app.modules.auth.services import AuthenticationService
-from app.modules.dataset.models import DSViewRecord, DataSet, DSMetaData
+from app.modules.dataset.models import DSViewRecord, DataSet, DSMetaData, Status
 from app.modules.dataset.repositories import (
     AuthorRepository,
     DOIMappingRepository,
@@ -142,6 +142,28 @@ class DataSetService(BaseService):
 
     def get_all_datasets(self):
         return self.repository.get_all_datasets()
+
+    # This method will help in the proccess of publishing datasets
+    def publish_datasets(self, current_user_id):
+        try:
+            datasets = self.repository.get_unsynchronized(current_user_id)
+            for dataset in datasets:
+                if (dataset.ds_meta_data.ds_status == Status.UNPUBLISHED):
+                    dataset.ds_meta_data.ds_status = Status.PUBLISHED
+                    self.repository.session.commit()
+                else:
+                    raise ValueError("Dataset is not in 'UNPUBLISHED' status")
+        except Exception:
+            self.repository.session.rollback()
+
+    # This method will help in the proccess of publishing a specific dataset
+    def publish_specific_dataset(self, current_user_id, dataset_id):
+        try:
+            dataset = self.repository.get_unsynchronized_dataset(current_user_id, dataset_id)
+            dataset.ds_meta_data.ds_status = Status.PUBLISHED
+            self.repository.session.commit()
+        except Exception:
+            self.repository.session.rollback()
 
 
 class AuthorService(BaseService):
