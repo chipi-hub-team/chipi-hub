@@ -8,7 +8,6 @@ from app.modules.dataset.models import Status
 from app import db
 
 
-
 @pytest.fixture(scope="module")
 def test_client(test_client):
     """
@@ -35,13 +34,12 @@ def test_download_all_dataset(test_client):
     test_client.get("/logout", follow_redirects=True)
 
 
-
 def test_checksum_and_size():
     checksum, size = services.calculate_checksum_and_size("app/modules/dataset/tests/checksum_file_test.txt")
     assert checksum == "1ca813544406308899f8764f9d5a3422"
     assert size == 30
 
-    
+
 @pytest.mark.local
 def test_publish_dataset_success(test_client):
     """
@@ -174,4 +172,3 @@ def test_publish_all_datasets_with_errors(test_client):
         assert "Publication completed with errors." in response.json["message"]
 
     logout(test_client)
-
