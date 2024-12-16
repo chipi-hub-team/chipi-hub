@@ -1,10 +1,12 @@
-from flask import flash, render_template, redirect, url_for, request
-from flask_login import current_user, login_user, logout_user
+from flask import render_template, redirect, session, url_for, request, make_response
+from flask_login import current_user, logout_user
 
 from app.modules.auth import auth_bp
-from app.modules.auth.forms import SignupForm, LoginForm
+from app.modules.auth.forms import SignupForm, LoginForm, ValidateEmailForm
 from app.modules.auth.services import AuthenticationService
 from app.modules.profile.services import UserProfileService
+import pyotp
+import os
 
 authentication_service = AuthenticationService()
 user_profile_service = UserProfileService()
@@ -18,32 +20,21 @@ def show_signup_form():
     form = SignupForm()
     if form.validate_on_submit():
         email = form.email.data
-        if not authentication_service.is_email_available(email):
+        password = form.password.data
+        if not authentication_service.is_email_valid(email):
             return render_template("auth/signup_form.html", form=form, error=f'Email {email} in use')
 
         try:
-            user = authentication_service.create_with_profile(**form.data)
-            authentication_service.send_confirmation_email(user.email)
-            flash("Please, confirm your email", "info")
+            authentication_service.create_with_profile(**form.data)
         except Exception as exc:
             return render_template("auth/signup_form.html", form=form, error=f'Error creating user: {exc}')
 
-        return redirect(url_for('public.index'))
+        response = make_response(redirect(url_for('auth.validate_email')))
+        session['email'] = email
+        session['password'] = password
+        return response
 
     return render_template("auth/signup_form.html", form=form)
-
-
-@auth_bp.route("/confirm_user/<token>", methods=["GET"])
-def confirm_user(token):
-    try:
-        user = authentication_service.confirm_user_with_token(token)
-    except Exception as exc:
-        flash(exc.args[0], "danger")
-        return redirect(url_for('auth.show_signup_form'))
-
-    # Log user
-    login_user(user, remember=True)
-    return redirect(url_for('public.index'))
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
@@ -53,15 +44,58 @@ def login():
 
     form = LoginForm()
     if request.method == 'POST' and form.validate_on_submit():
-        if authentication_service.login(form.email.data, form.password.data):
-            return redirect(url_for('public.index'))
+        email = request.form['email']
+        password = request.form['password']
+        if authentication_service.correct_credentials(email, password):
+            response = make_response(redirect(url_for('auth.validate_email')))
+            session['email'] = email
+            session['password'] = password
+            return response
 
         return render_template("auth/login_form.html", form=form, error='Invalid credentials')
 
     return render_template('auth/login_form.html', form=form)
 
 
+@auth_bp.route('/validate_email', methods=['GET', 'POST'])
+def validate_email():
+    if current_user.is_authenticated:
+        return redirect(url_for('public.index'))
+
+    email = session['email']
+    password = session['password']
+    if not email or not password:
+        return redirect(url_for('auth.login'))
+
+    form = ValidateEmailForm()
+
+    if request.method == 'POST':
+        key = int(form.key.data.strip())
+        if key == int(session.get('key')):
+            authentication_service.login(email, password)
+            response = make_response(redirect(url_for('public.index')))
+            session.pop('email', None)
+            session.pop('password', None)
+            return response
+
+        return render_template(
+            "auth/validate_email_form.html",
+            form=form,
+            key=key,
+            error='The key does not match'
+        )
+
+    if request.method == 'GET':
+        random_key = pyotp.TOTP(str(os.getenv('SECRET_CODE_GENERATOR'))).now()
+        session['key'] = random_key
+        authentication_service.send_email(email, random_key)
+    return render_template('auth/validate_email_form.html', form=form, email=email)
+
+
 @auth_bp.route('/logout')
 def logout():
     logout_user()
-    return redirect(url_for('public.index'))
+    response = make_response(redirect(url_for('public.index')))
+    session.pop('email', None)
+    session.pop('password', None)
+    return response

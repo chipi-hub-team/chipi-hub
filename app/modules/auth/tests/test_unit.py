@@ -135,19 +135,6 @@ def test_signup_send_confirmation_email(test_client, clean_database):
         assert len(outbox) == 1
 
 
-def test_create_with_profile_create_inactive_user(test_client, clean_database):
-    data = {
-        "name": "Test",
-        "surname": "Foo",
-        "email": "user@example.com",
-        "password": "test1234"
-    }
-    user = AuthenticationService().create_with_profile(**data)
-    assert UserRepository().count() == 1
-    assert UserProfileRepository().count() == 1
-    assert user.active is False
-
-
 def test_confirm_user_token_expired(test_client):
     email = "expired@example.com"
 
@@ -169,23 +156,3 @@ def test_confirm_user_token_manipulated(test_client):
     url = url_for('auth.confirm_user', token=token, _external=False)
     response = test_client.get(url, follow_redirects=True)
     assert response.request.path == url_for("auth.show_signup_form", _external=False)
-
-
-def test_confirm_user_active_user(test_client):
-    data = {
-        "name": "Test",
-        "surname": "Foo",
-        "email": "user@example.com",
-        "password": "test1234"
-    }
-    user = AuthenticationService().create_with_profile(**data)
-    assert user.active is False
-
-    token = AuthenticationService().get_token_from_email(user.email)
-
-    url = url_for('auth.confirm_user', token=token, _external=False)
-    response = test_client.get(url, follow_redirects=True)
-    assert response.request.path == url_for("public.index", _external=False)
-
-    user = UserRepository().get_by_email(user.email)
-    assert user.active is True

@@ -1,16 +1,21 @@
 import os
-from flask import current_app, url_for
 from flask_login import login_user
 from flask_login import current_user
-from itsdangerous import BadTimeSignature, SignatureExpired, URLSafeTimedSerializer
 
-from app import mail_service
 from app.modules.auth.models import User
 from app.modules.auth.repositories import UserRepository
 from app.modules.profile.models import UserProfile
 from app.modules.profile.repositories import UserProfileRepository
 from core.configuration.configuration import uploads_folder_name
 from core.services.BaseService import BaseService
+
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import imaplib
+import email
+from email.header import decode_header
+import re
 
 
 class AuthenticationService(BaseService):
@@ -21,9 +26,6 @@ class AuthenticationService(BaseService):
         super().__init__(UserRepository())
         self.user_profile_repository = UserProfileRepository()
 
-    def get_serializer(self):
-        return URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
-
     def login(self, email, password, remember=True):
         user = self.repository.get_by_email(email)
         if user is not None and user.check_password(password):
@@ -31,7 +33,14 @@ class AuthenticationService(BaseService):
             return True
         return False
 
-    def is_email_available(self, email: str) -> bool:
+    def correct_credentials(self, email, password, remember=True):
+        user = self.repository.get_by_email(email)
+        if user is not None and user.check_password(password):
+            login_user(user, remember=remember)
+            return True
+        return False
+
+    def is_email_valid(self, email: str) -> bool:
         return self.repository.get_by_email(email) is None
 
     def create_with_profile(self, **kwargs):
@@ -52,13 +61,12 @@ class AuthenticationService(BaseService):
 
             user_data = {
                 "email": email,
-                "password": password,
-                "active": False
+                "password": password
             }
 
             profile_data = {
                 "name": name,
-                "surname": surname,
+                "surname": surname
             }
 
             user = self.create(commit=False, **user_data)
@@ -68,31 +76,6 @@ class AuthenticationService(BaseService):
         except Exception as exc:
             self.repository.session.rollback()
             raise exc
-        return user
-
-    def get_token_from_email(self, email):
-        s = self.get_serializer()
-        return s.dumps(email, salt=self.SALT)
-
-    def send_confirmation_email(self, user_email):
-        token = self.get_token_from_email(user_email)
-        url = url_for("auth.confirm_user", token=token)
-        mail_service.send_email("Please, confirm your email",
-                                recipients=[user_email],
-                                body=f"<a href='{url}'>Please, confirm your email</a>")
-
-    def confirm_user_with_token(self, token):
-        s = self.get_serializer()
-        try:
-            email = s.loads(token, salt=self.SALT, max_age=self.MAX_AGE)
-        except SignatureExpired:
-            raise Exception("The confirmation link has expired.")
-        except BadTimeSignature:
-            raise Exception("The confirmation link has been manipulated.")
-
-        user = self.repository.get_by_email(email, active=False)
-        user.active = True
-        self.repository.session.commit()
         return user
 
     def update_profile(self, user_profile_id, form):
@@ -113,4 +96,98 @@ class AuthenticationService(BaseService):
         return None
 
     def temp_folder_by_user(self, user: User) -> str:
-        return os.path.join(uploads_folder_name(), "temp", str(user.id))
+        return os.path.join(uploads_folder_name, "temp", str(user.id))
+
+    def send_email(self, target_email, random_key):
+        print("Intentando enviar correo a", target_email)
+        sender_email = "chipihubteam@gmail.com"
+        receiver_email = target_email
+        password = str(os.getenv('UVLHUB_EMAIL_PASSWORD'))
+        subject = f"[UVLHUB] Your key is {random_key}!"
+        body = f"""
+                <html>
+                <head>
+                    <style>
+                        body {{
+                            font-family: Arial, sans-serif;
+                            line-height: 1.6;
+                        }}
+                        .bold {{
+                            font-weight: bold;
+                        }}
+                    </style>
+                </head>
+                <body>
+                    <p>Hello,</p>
+                    <p>Thank you for using <span class="bold">UVLHUB</span>!</p>
+                    <p>To verify your account, please use the following <span class="bold">
+                    authentication key</span>:</p>
+                    <p class="bold">{random_key}</p>
+                    <p>Please enter this key in the authentication form to proceed. If you did not request this key or
+                    believe this is an error, please ignore this email.</p>
+                    <p>For your security, this key is valid for a limited time only.</p>
+                    <p>Best regards,</p>
+                    <p><span class="bold">The UVLHUB Team</span></p>
+                </body>
+                </html>
+                """
+        message = MIMEMultipart()
+        message["From"] = sender_email
+        message["To"] = receiver_email
+        message["Subject"] = subject
+        message.attach(MIMEText(body, "html"))
+        smtp_server = "smtp.gmail.com"
+        smtp_port = 587
+        try:
+            with smtplib.SMTP(smtp_server, smtp_port) as server:
+                server.starttls()
+                server.login(sender_email, password)
+                server.sendmail(sender_email, receiver_email, message.as_string())
+                print("Email sent successfully to "+str(target_email)+"!")
+        except Exception as e:
+            print(f"Error: {e}")
+
+    def get_validation_email_info(self, verbose=False):
+        username = "chipihubteam@gmail.com"
+        password = str(os.getenv('UVLHUB_EMAIL_PASSWORD'))
+        mail = imaplib.IMAP4_SSL("imap.gmail.com")
+        mail.login(username, password)
+        mail.select("inbox")
+        _, messages = mail.search(None, 'FROM', '"chipihubteam@gmail.com"')
+        email_ids = messages[0].split()
+        res = {}
+
+        if email_ids:
+            latest_email_id = email_ids[-1]
+            _, msg_data = mail.fetch(latest_email_id, "(RFC822)")
+
+            for response_part in msg_data:
+                if isinstance(response_part, tuple):
+                    msg = email.message_from_bytes(response_part[1])
+                    # Decode the email subject
+                    subject, encoding = decode_header(msg["Subject"])[0]
+                    if isinstance(subject, bytes):
+                        subject = subject.decode(encoding if encoding else "utf-8")
+                    res['Subject'] = subject
+                    # Decode the sender
+                    from_ = msg.get("From")
+                    res['From'] = from_
+                    # Decode the key
+                    key = re.sub(r'[^0-9]', '', subject)
+                    res['Key'] = key
+
+                    if (verbose):
+                        print(f"Subject: {subject}")
+                        print(f"From: {from_}")
+                        print(f"Key: {key}")
+
+        else:
+            print("No emails found from chipihubteam@gmail.com.")
+
+        # Logout and close the connection
+        mail.logout()
+        return res
+
+    def get_validation_email_key(self):
+        res = self.get_validation_email_info(False)
+        return res['Key']
