@@ -62,7 +62,7 @@ jobs:
     - name: Upload coverage to Codacy
       run: |
         pip install codacy-coverage
-        coverage run -m pytest app/modules/ --ignore-glob='*selenium*'
+        coverage run -m pytest app/modules/ -m "not local" --ignore-glob='*selenium*'
         coverage xml 
         python-codacy-coverage -r coverage.xml
       env:
@@ -83,5 +83,5 @@ jobs:
         MARIADB_USER: uvlhub_user
         MARIADB_PASSWORD: uvlhub_password
       run: |
-        pytest app/modules/ --ignore-glob='*selenium*'
+        pytest app/modules/ -m "not local" --ignore-glob='*selenium*'
 

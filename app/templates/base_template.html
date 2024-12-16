@@ -33,6 +33,8 @@ chico sundermann">
 
     <link rel="stylesheet" href="{{ url_for("static", filename="css/own.css") }}">
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
 </head>
 
 <body>
@@ -162,12 +164,12 @@ chico sundermann">
             <div class="navbar-collapse collapse">
                 <ul class="navbar-nav navbar-align">
                     <li class="nav-item dropdown">
-
+                        <a href="/dataset/download_all_datasets" class="btn btn-primary">
+                            <i data-feather="download" class="center-button-icon"></i>
+                            Download all datasets
+                        </a>
                         {% if current_user.is_anonymous %}
-                            <a href="/dataset/download_all_datasets" class="btn btn-primary">
-                                <i data-feather="download" class="center-button-icon"></i>
-                                Download all datasets
-                            </a>
+                            
                             <a class="nav-link  d-none d-sm-inline-block" href="{{ url_for('auth.login') }}">Login</a>
                             <a class="nav-link  d-none d-sm-inline-block" href="{{ url_for('auth.show_signup_form') }}">Sign
                                 up</a>

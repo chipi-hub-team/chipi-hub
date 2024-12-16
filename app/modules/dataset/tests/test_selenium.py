@@ -138,6 +138,46 @@ def test_downloadall():
     driver.find_element(By.LINK_TEXT, "Download all datasets").click()
 
 
+def test_publish_datset():
+    driver = initialize_driver()
+    driver.get("http://127.0.0.1:5000/")
+    driver.set_window_size(1854, 1048)
+    driver.find_element(By.CSS_SELECTOR, ".nav-link:nth-child(2)").click()
+    driver.find_element(By.ID, "email").click()
+    driver.find_element(By.ID, "email").send_keys("user1@example.com")
+    driver.find_element(By.ID, "password").click()
+    driver.find_element(By.ID, "password").send_keys("1234")
+    driver.find_element(By.ID, "submit").click()
+    driver.find_element(By.CSS_SELECTOR, ".sidebar-item:nth-child(7) .align-middle:nth-child(2)").click()
+    wait_for_page_to_load(driver)
+    driver.find_element(By.CSS_SELECTOR, "tr:nth-child(1) .btn").click()
+    driver.find_element(By.CSS_SELECTOR, ".btn").click()
+
+
+def test_publish_All_datasets():
+
+    test_upload_dataset()
+    # redneck fix: invoke a test that creates a dataset and using the "fixture created" does the current test
+
+    driver = initialize_driver()
+    driver.get("http://127.0.0.1:5000/")
+    driver.set_window_size(1854, 1048)
+    driver.find_element(By.CSS_SELECTOR, ".nav-link:nth-child(2)").click()
+    driver.find_element(By.CSS_SELECTOR, ".row:nth-child(2) > .col-md-6 > .mb-3").click()
+    driver.find_element(By.ID, "email").click()
+    driver.find_element(By.CSS_SELECTOR, ".row:nth-child(2) > .col-md-6").click()
+    driver.find_element(By.ID, "email").click()
+    driver.find_element(By.ID, "email").send_keys("user1@example.com")
+    driver.find_element(By.ID, "password").click()
+    driver.find_element(By.ID, "password").send_keys("1234")
+    driver.find_element(By.ID, "submit").click()
+    driver.find_element(By.CSS_SELECTOR, ".sidebar-item:nth-child(7) .align-middle:nth-child(2)").click()
+    wait_for_page_to_load(driver)
+    driver.find_element(By.CSS_SELECTOR, ".card-body > form > .btn").click()
+
+
 # Call the test function
+test_publish_All_datasets()
 test_upload_dataset()
 test_downloadall()
+test_publish_datset()

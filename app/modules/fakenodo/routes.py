@@ -17,7 +17,7 @@ def get_all_depositions():
 @fakenodo_bp.route('/fakenodo/deposit/depositions/<int:id>', methods=['GET'])
 def get_deposition(id):
     workdir = os.getenv("WORKING_DIR")
-    path = f"{workdir}/app/modules/fakenodo/placeholders/deposition.json"
+    path = f"{workdir}app/modules/fakenodo/placeholders/deposition.json"
     with open(path) as f:
         data = json.load(f)
         data['doi'] = str(uuid.uuid4())
