@@ -2,18 +2,23 @@ from flask import jsonify, make_response
 from app.modules.fakenodo import fakenodo_bp
 import json
 import uuid
+import os
 
 
 @fakenodo_bp.route('/fakenodo/deposit/depositions', methods=['GET'])
 def get_all_depositions():
-    with open('app/modules/fakenodo/placeholders/depositions.json') as f:
+    workdir = os.getenv("WORKING_DIR")
+    path = f"{workdir}app/modules/fakenodo/placeholders/deposition.json"
+    with open(path) as f:
         data = json.load(f)
     return jsonify(data)
 
 
 @fakenodo_bp.route('/fakenodo/deposit/depositions/<int:id>', methods=['GET'])
 def get_deposition(id):
-    with open('app/modules/fakenodo/placeholders/deposition.json') as f:
+    workdir = os.getenv("WORKING_DIR")
+    path = f"{workdir}app/modules/fakenodo/placeholders/deposition.json"
+    with open(path) as f:
         data = json.load(f)
         data['doi'] = str(uuid.uuid4())
 

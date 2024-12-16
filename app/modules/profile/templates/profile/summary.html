@@ -1,11 +1,26 @@
 {% extends "base_template.html" %}
 
 
-{% block title %}User Profile{% endblock %}
+{% block title %}
+    {% if is_my_profile %}
+        My profile
+    {% else %}
+        User Profile
+    {% endif %}
+
+{% endblock %}
 
 {% block content %}
 
-<h1 class="h3 mb-3">User profile</h1>
+<h1 class="h3 mb-3">
+    {% if is_my_profile %}
+        My profile
+    {% else %}
+        User Profile
+    {% endif %}
+
+
+</h1>
 
 <div class="row">
 
@@ -45,31 +60,53 @@
                             </tr>
                         </thead>
                         <tbody>
-                          
-                            {% for dataset in datasets %}
-                            <tr>
-                                <td>
+                            {% if is_my_profile %}
+                                {% for dataset in datasets %}
+                                <tr>
+                                    <td>
 
-                                    {% if dataset.ds_meta_data.dataset_doi %}
-                                        <a href="{{ dataset.get_uvlhub_doi() }}">
-                                            {{ dataset.ds_meta_data.title }}
-                                        </a>
-                                    {% else %}
-                                        <a href="{{ url_for('dataset.get_unsynchronized_dataset', dataset_id=dataset.id) }}">
-                                            {{ dataset.ds_meta_data.title }}
-                                        </a>                                    
+                                        {% if dataset.ds_meta_data.dataset_doi %}
+                                            <a href="{{ dataset.get_uvlhub_doi() }}">
+                                                {{ dataset.ds_meta_data.title }}
+                                            </a>
+                                        {% else %}
+                                            <a href="{{ url_for('dataset.get_unsynchronized_dataset', dataset_id=dataset.id) }}">
+                                                {{ dataset.ds_meta_data.title }}
+                                            </a>                               
+                                        {% endif %}
+
+                                        
+                                    </td>
+                                    <td>{{ dataset.ds_meta_data.publication_type.name.replace('_', ' ').title() }}</td>
+                                </tr>
+                                {% else %}
+                            
+                                <tr>
+                                    <td colspan="2">No datasets uploaded.</td>
+                                </tr>
+                                {% endfor %}
+
+                            {% else %}
+                                
+                                {% for dataset in datasets %}
+                                    {% if dataset.ds_meta_data.ds_status == status.PUBLISHED %}
+                                    <tr>
+                                        <td>
+                                             <a href="{{ dataset.get_uvlhub_doi() }}">
+                                                {{ dataset.ds_meta_data.title }}
+                                             </a> 
+                                        </td>
+                                        <td>{{ dataset.ds_meta_data.publication_type.name.replace('_', ' ').title() }}</td>
+                                    </tr>
                                     {% endif %}
 
-                                    
-                                </td>
-                                <td>{{ dataset.ds_meta_data.publication_type.name.replace('_', ' ').title() }}</td>
-                            </tr>
-                            {% else %}
-                          
-                            <tr>
-                                <td colspan="2">No datasets uploaded.</td>
-                            </tr>
-                            {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="2">No datasets uploaded.</td>
+                                    </tr>
+                                {% endfor %}
+                            {% endif %}
+                            
                         </tbody>
                     </table>
                 </div>
