@@ -1,4 +1,6 @@
 import pytest
+
+from app.modules.dataset import services
 from unittest.mock import patch, MagicMock
 from app.modules.conftest import login, logout
 from app.modules.auth.models import User
@@ -30,6 +32,12 @@ def test_download_all_dataset(test_client):
     assert response.status_code == 200, "Download all datasets was unsuccessful"
 
     test_client.get("/logout", follow_redirects=True)
+
+
+def test_checksum_and_size():
+    checksum, size = services.calculate_checksum_and_size("app/modules/dataset/tests/checksum_file_test.txt")
+    assert checksum == "1ca813544406308899f8764f9d5a3422"
+    assert size == 30
 
 
 @pytest.mark.local
