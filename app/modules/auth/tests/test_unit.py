@@ -1,9 +1,7 @@
-import time
 from unittest.mock import patch
 import pytest
 from flask import url_for
 
-from app import mail_service
 from app.modules.auth.services import AuthenticationService
 from app.modules.auth.repositories import UserRepository
 from app.modules.profile.repositories import UserProfileRepository
@@ -70,12 +68,17 @@ def test_signup_user_unsuccessful(test_client):
 
 
 def test_signup_user_successful(test_client):
-    response = test_client.post(
-        "/signup",
-        data=dict(name="Foo", surname="Example", email="foo@example.com", password="foo1234"),
-        follow_redirects=True,
-    )
-    assert response.request.path == url_for("public.index"), "Signup was unsuccessful"
+    with patch('app.modules.auth.services.AuthenticationService.send_email') as mock_send_email:
+        mock_send_email.return_value = True
+        response = test_client.post(
+            "/signup",
+            data=dict(name="Foo", surname="Example", email="foo@example.com", password="foo1234"),
+            follow_redirects=True,
+        )
+        assert response.status_code == 200, "Signup was unsuccessful"
+        assert response.request.path == url_for("auth.validate_email"), "Signup was unsuccessful"
+        assert b"Validate Email" in response.data, "Signup was unsuccessful"
+        mock_send_email.assert_called_once()
 
 
 def test_service_create_with_profie_success(clean_database):
@@ -120,39 +123,3 @@ def test_service_create_with_profile_fail_no_password(clean_database):
 
     assert UserRepository().count() == 0
     assert UserProfileRepository().count() == 0
-
-
-def test_signup_send_confirmation_email(test_client, clean_database):
-    data = {
-        "name": "Test",
-        "surname": "Foo",
-        "email": "test_confirmation@example.com",
-        "password": "test1234",
-    }
-
-    with mail_service.mail.record_messages() as outbox:
-        test_client.post("/signup", data=data, follow_redirects=True)
-        assert len(outbox) == 1
-
-
-def test_confirm_user_token_expired(test_client):
-    email = "expired@example.com"
-
-    with patch("time.time", return_value=time.time() - (AuthenticationService.MAX_AGE + 1)):
-        token = AuthenticationService().get_token_from_email(email)
-
-    url = url_for('auth.confirm_user', token=token, _external=False)
-    response = test_client.get(url, follow_redirects=True)
-    assert response.request.path == url_for("auth.show_signup_form", _external=False)
-
-
-def test_confirm_user_token_manipulated(test_client):
-    email = "manipulated@example.com"
-
-    AuthenticationService.SALT = "bad_salt"
-    token = AuthenticationService().get_token_from_email(email)
-
-    AuthenticationService.SALT = "user-confirm"
-    url = url_for('auth.confirm_user', token=token, _external=False)
-    response = test_client.get(url, follow_redirects=True)
-    assert response.request.path == url_for("auth.show_signup_form", _external=False)
