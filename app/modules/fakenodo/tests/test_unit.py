@@ -87,4 +87,3 @@ def test_publish_deposition(test_client, fakenodo_service):
         response = publish_deposition(1)
         assert response.status_code == 202
         assert response.json == {"message": "Deposition 1 published"}
-
