@@ -109,7 +109,7 @@ class AuthenticationService(BaseService):
                 <head>
                     <style>
                         body {{
-                            font-family: Arial, sans-serif;
+                            font-family: Helvetica, sans-serif;
                             line-height: 1.6;
                         }}
                         .bold {{
