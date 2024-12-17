@@ -29,6 +29,7 @@ flamapy-sat==2.0.0.dev1
 Flask==3.0.3
 Flask-Cors==4.0.1
 Flask-Login==0.6.3
+Flask-Mail==0.10.0
 Flask-Migrate==4.0.7
 Flask-RESTful==0.3.10
 Flask-SQLAlchemy==3.1.1
@@ -64,6 +65,7 @@ pycparser==2.22
 pyflakes==3.2.0
 PyMySQL==1.1.1
 pyOpenSSL==24.1.0
+pyotp==2.9.0
 pyparsing==3.1.2
 PySocks==1.7.1
 pytest==8.2.2
