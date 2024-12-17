@@ -117,7 +117,7 @@ class DataSetRepository(BaseRepository):
         )
 
     def get_all_datasets(self):
-        return self.model.query.all()
+        return self.model.query.join(DSMetaData).filter(DSMetaData.ds_status == Status.PUBLISHED).all()
 
 
 class DOIMappingRepository(BaseRepository):

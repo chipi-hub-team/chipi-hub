@@ -1,8 +1,8 @@
-"""first migration
+"""restart migrations
 
-Revision ID: 001
+Revision ID: 6cc26337d85f
 Revises: 
-Create Date: 2024-09-08 16:50:20.326640
+Create Date: 2024-12-17 13:33:46.712100
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '001'
+revision = '6cc26337d85f'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -36,6 +36,12 @@ def upgrade():
     sa.Column('not_solver', sa.Text(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('rating',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('dataset_id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_table('user',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('email', sa.String(length=256), nullable=False),
@@ -43,10 +49,6 @@ def upgrade():
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email')
-    )
-    op.create_table('webhook',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('zenodo',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -62,6 +64,7 @@ def upgrade():
     sa.Column('dataset_doi', sa.String(length=120), nullable=True),
     sa.Column('tags', sa.String(length=120), nullable=True),
     sa.Column('ds_metrics_id', sa.Integer(), nullable=True),
+    sa.Column('ds_status', sa.Enum('UNPUBLISHED', 'PUBLISHED', name='status'), nullable=False),
     sa.ForeignKeyConstraint(['ds_metrics_id'], ['ds_metrics.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -76,6 +79,14 @@ def upgrade():
     sa.Column('uvl_version', sa.String(length=120), nullable=True),
     sa.Column('fm_metrics_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['fm_metrics_id'], ['fm_metrics.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('notepad',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('title', sa.String(length=256), nullable=False),
+    sa.Column('body', sa.Text(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('user_profile',
@@ -180,11 +191,12 @@ def downgrade():
     op.drop_table('data_set')
     op.drop_table('author')
     op.drop_table('user_profile')
+    op.drop_table('notepad')
     op.drop_table('fm_meta_data')
     op.drop_table('ds_meta_data')
     op.drop_table('zenodo')
-    op.drop_table('webhook')
     op.drop_table('user')
+    op.drop_table('rating')
     op.drop_table('fm_metrics')
     op.drop_table('ds_metrics')
     op.drop_table('doi_mapping')
