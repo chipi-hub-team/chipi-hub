@@ -1,8 +1,8 @@
-"""restart migrations
+"""restarted_migration
 
-Revision ID: 6cc26337d85f
+Revision ID: 7ec98d70c918
 Revises: 
-Create Date: 2024-12-17 13:33:46.712100
+Create Date: 2024-12-17 23:35:16.194704
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '6cc26337d85f'
+revision = '7ec98d70c918'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -49,6 +49,10 @@ def upgrade():
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email')
+    )
+    op.create_table('webhook',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('zenodo',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -195,6 +199,7 @@ def downgrade():
     op.drop_table('fm_meta_data')
     op.drop_table('ds_meta_data')
     op.drop_table('zenodo')
+    op.drop_table('webhook')
     op.drop_table('user')
     op.drop_table('rating')
     op.drop_table('fm_metrics')
