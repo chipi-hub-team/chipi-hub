@@ -96,7 +96,7 @@ class AuthenticationService(BaseService):
         return None
 
     def temp_folder_by_user(self, user: User) -> str:
-        return os.path.join(uploads_folder_name, "temp", str(user.id))
+        return os.path.join(uploads_folder_name(), "temp", str(user.id))
 
     def send_email(self, target_email, random_key):
         print("Intentando enviar correo a", target_email)
