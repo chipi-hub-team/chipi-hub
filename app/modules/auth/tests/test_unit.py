@@ -126,10 +126,8 @@ def test_service_create_with_profile_fail_no_password(clean_database):
 
 
 def test_get_validation_email_info_verbose():
-    # Arrange
     email = "test@example.com"
     user = UserRepository().get_by_email(email)
 
-    # Act
     with pytest.raises(TypeError):
         AuthenticationService().get_validation_email_info(user, verbose=True)
